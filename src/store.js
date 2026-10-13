@@ -13,6 +13,8 @@ export const useStore = create((set) => ({
   showClearance: true,
     view: '2d',
       showWalkway: true,
+        saved: [],
+  compare: [],
 
   setRoom: (patch) =>
     set((s) => {
@@ -54,4 +56,14 @@ export const useStore = create((set) => ({
   toggleClearance: () => set((s) => ({ showClearance: !s.showClearance })),
     setView: (view) => set({ view }),
       toggleWalkway: () => set((s) => ({ showWalkway: !s.showWalkway })),
+        setSaved: (saved) =>
+    set((s) => ({ saved, compare: s.compare.filter((id) => saved.some((l) => l.id === id)) })),
+  toggleCompare: (id) =>
+    set((s) => ({
+      compare: s.compare.includes(id)
+        ? s.compare.filter((x) => x !== id)
+        : s.compare.length < 3 ? [...s.compare, id] : s.compare,
+    })),
+  loadLayout: (room, items) =>
+    set({ room, items, nextId: Math.max(0, ...items.map((i) => i.id)) + 1, selectedId: null }),
 }))

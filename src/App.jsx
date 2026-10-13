@@ -3,8 +3,12 @@ import { useStore } from './store'
 import RoomControls from './components/RoomControls'
 import PlanCanvas from './components/PlanCanvas'
 import Room3D from './components/Room3D'
+import LayoutsPanel from './components/LayoutsPanel'
+import ComparePanel from './components/ComparePanel'
 import InfoPanel from './components/InfoPanel'
 import './index.css'
+
+const TABS = [['2d', '2D plan'], ['3d', '3D view'], ['layouts', 'Layouts'], ['compare', 'Compare']]
 
 export default function App() {
   const view = useStore((s) => s.view)
@@ -33,10 +37,14 @@ export default function App() {
       <main>
         <RoomControls />
         <div className="tabs">
-          <button className={view === '2d' ? 'on' : ''} onClick={() => setView('2d')}>2D plan</button>
-          <button className={view === '3d' ? 'on' : ''} onClick={() => setView('3d')}>3D view</button>
+          {TABS.map(([key, label]) => (
+            <button key={key} className={view === key ? 'on' : ''} onClick={() => setView(key)}>{label}</button>
+          ))}
         </div>
-        {view === '2d' ? <PlanCanvas /> : <Room3D />}
+        {view === '2d' && <PlanCanvas />}
+        {view === '3d' && <Room3D />}
+        {view === 'layouts' && <LayoutsPanel />}
+        {view === 'compare' && <ComparePanel />}
       </main>
       <InfoPanel />
     </div>
