@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SpaceFit 3D – Room Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#e9eef4;--card:#fff;--ink:#14213d;--mut:#5b6b82;--line:#cfd8e3;--acc:#0f7ea8;--floor:#fff;--grid:#e6ecf3;--bad:#d6336c;--warn:#e67700;--ok:#12805c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1520;--card:#162131;--ink:#e8eef6;--mut:#8fa1b8;--line:#2a3a50;--acc:#4cc2ec;--floor:#101a28;--grid:#1a283a;--bad:#ff6b9a;--warn:#ffa94d;--ok:#4fd1a1}}
+:root[data-theme="dark"]{--bg:#0d1520;--card:#162131;--ink:#e8eef6;--mut:#8fa1b8;--line:#2a3a50;--acc:#4cc2ec;--floor:#101a28;--grid:#1a283a;--bad:#ff6b9a;--warn:#ffa94d;--ok:#4fd1a1}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.app{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:14px;grid-template-columns:1fr 300px}
+@media(max-width:860px){.app{grid-template-columns:1fr}}
+h1{font-size:22px;margin:0;font-weight:600;letter-spacing:-.01em}
+.sub{color:var(--mut);margin:2px 0 0;font-size:14px}
+header{grid-column:1/-1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+label{display:flex;flex-direction:column;font-size:12px;color:var(--mut);gap:3px}
+input,select,button{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+input[type=number]{width:84px}input[type=text]{width:110px}input[type=range]{padding:0;width:130px}
+button{cursor:pointer}button:hover{border-color:var(--acc)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.cat{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.cat button{font-size:13px}
+.plan{padding:6px}
+svg{width:100%;height:auto;max-height:72vh;display:block;touch-action:none;user-select:none}
+.item{cursor:grab}.item:active{cursor:grabbing}
+.panel h2{font-size:14px;margin:0 0 8px;font-weight:600}
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:14px;margin:0 0 10px}
+.kv span:nth-child(odd){color:var(--mut)}
+.verdict{padding:8px 10px;border-radius:8px;font-weight:600;font-size:14px;margin-bottom:10px;border:1px solid}
+.v-ok{color:var(--ok);border-color:var(--ok)}.v-warn{color:var(--warn);border-color:var(--warn)}.v-bad{color:var(--bad);border-color:var(--bad)}
+.note{color:var(--mut);font-size:13px;margin:8px 0 0}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>SpaceFit 3D</h1>
+  <p class="sub">Set your room, drag furniture in, and see what fits. All sizes in cm.</p>
+</header>
+
+<main>
+  <div class="card">
+    <div class="row">
+      <label>Width<input id="rw" type="number" min="150" max="1500" value="350"></label>
+      <label>Length<input id="rl" type="number" min="150" max="1500" value="400"></label>
+      <label>Door wall<select id="dw"><option>bottom</option><option>top</option><option>left</option><option>right</option></select></label>
+      <label>Door position<input id="dp" type="range" min="0" max="260" value="40"></label>
+      <label style="flex-direction:row;align-items:center;gap:6px"><input id="sc" type="checkbox" checked>Show clearance</label>
+    </div>
+    <div class="cat" id="cat"></div>
+    <form class="row" id="cf" style="margin-top:10px">
+      <label>Custom item<input id="cn" type="text" value="My item"></label>
+      <label>Width<input id="cw" type="number" min="10" value="100"></label>
+      <label>Depth<input id="cd" type="number" min="10" value="60"></label>
+      <label>Front gap<input id="cc" type="number" min="0" value="60"></label>
+      <button type="submit">Add</button>
+    </form>
+  </div>
+  <div class="card plan" style="margin-top:14px"><svg id="svg" aria-label="Room floor plan"><g id="scene"></g></svg></div>
+</main>
+
+<aside class="card panel" id="panel"></aside>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), svg=$('#svg'), scene=$('#scene');
+const S={W:350,L:400,wall:'bottom',off:40,clr:true,items:[],sel:null,nid:1};
+const DOOR=90;
+const CAT=[['Single bed',100,200,60,210],['Double bed',150,200,60,260],['Desk',120,60,80,200],['Sofa',190,90,70,30],['Wardrobe',120,55,80,0],['Table',140,80,70,140],['Bookshelf',80,30,60,100]];
+
+const eff=i=>i.rot%180?[i.d,i.w]:[i.w,i.d];
+const box=i=>{const[w,h]=eff(i);return[i.x-w/2,i.y-h/2,i.x+w/2,i.y+h/2]};
+function front(i){const b=box(i),c=i.clr;
+  return[[b[0],b[3],b[2],b[3]+c],[b[0]-c,b[1],b[0],b[3]],[b[0],b[1]-c,b[2],b[1]],[b[2],b[1],b[2]+c,b[3]]][i.rot/90]}
+const ov=(a,b)=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1];
+const inside=b=>b[0]>=0&&b[1]>=0&&b[2]<=S.W&&b[3]<=S.L;
+function door(){const{W,L,wall,off}=S;
+  const[H,a,b]={top:[[off,0],[1,0],[0,1]],bottom:[[off,L],[1,0],[0,-1]],left:[[0,off],[0,1],[1,0]],right:[[W,off],[0,1],[-1,0]]}[wall];
+  const c=[H[0]+a[0]*DOOR,H[1]+a[1]*DOOR],o=[H[0]+b[0]*DOOR,H[1]+b[1]*DOOR];
+  return{H,c,o,sweep:(a[0]*b[1]-a[1]*b[0])>0?1:0,
+    box:[Math.min(H[0],c[0],o[0]),Math.min(H[1],c[1],o[1]),Math.max(H[0],c[0],o[0]),Math.max(H[1],c[1],o[1])]}}
+function status(i,D){const b=box(i),others=S.items.filter(o=>o!==i);
+  const bad=!inside(b)||others.some(o=>ov(b,box(o)))||ov(b,D.box);
+  let warn=false;
+  if(i.clr>0){const f=front(i);warn=!inside(f)||others.some(o=>ov(f,box(o)))}
+  return bad?'bad':warn?'warn':'ok'}
+function gap(a,b){const dx=Math.max(a[0]-b[2],b[0]-a[2],0),dy=Math.max(a[1]-b[3],b[1]-a[3],0);return Math.round(Math.hypot(dx,dy))}
+const R=n=>Math.round(n);
+
+function add(n,w,d,clr,h){const i={id:S.nid++,name:n,w:+w,d:+d,clr:+clr,h,x:S.W/2,y:S.L/2,rot:0};
+  S.items.push(i);S.sel=i.id;return i}
+const sel=()=>S.items.find(i=>i.id===S.sel);
+
+function render(){
+  const{W,L}=S,D=door(),m=70;
+  svg.setAttribute('viewBox',`${-m} ${-m} ${W+2*m} ${L+2*m}`);
+  let g='';
+  for(let x=50;x<W;x+=50)g+=`<line x1="${x}" y1="0" x2="${x}" y2="${L}" stroke="var(--grid)"/>`;
+  for(let y=50;y<L;y+=50)g+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="var(--grid)"/>`;
+  g=`<rect x="0" y="0" width="${W}" height="${L}" fill="var(--floor)"/>`+g+`<rect x="0" y="0" width="${W}" height="${L}" fill="none" stroke="var(--ink)" stroke-width="6"/>`;
+  g+=`<line x1="${D.H[0]}" y1="${D.H[1]}" x2="${D.c[0]}" y2="${D.c[1]}" stroke="var(--floor)" stroke-width="8"/>`;
+  g+=`<path d="M${D.H} L${D.c} A${DOOR} ${DOOR} 0 0 ${D.sweep} ${D.o} Z" fill="var(--acc)" fill-opacity=".1" stroke="var(--acc)" stroke-dasharray="5 4"/>`;
+  g+=`<text x="${W/2}" y="-24" text-anchor="middle" font-size="16" fill="var(--mut)">${W} cm</text>`;
+  g+=`<text transform="translate(-24 ${L/2}) rotate(-90)" text-anchor="middle" font-size="16" fill="var(--mut)">${L} cm</text>`;
+  const col={ok:'var(--ok)',warn:'var(--warn)',bad:'var(--bad)'};
+  S.items.forEach(i=>{
+    const st=status(i,D),hue=i.h,s=i.id===S.sel;
+    const fill=st==='bad'?'var(--bad)':`hsl(${hue} 55% 55%)`;
+    g+=`<g class="item" data-id="${i.id}"><g transform="translate(${i.x} ${i.y}) rotate(${i.rot})">`;
+    if(S.clr&&i.clr>0)g+=`<rect x="${-i.w/2}" y="${i.d/2}" width="${i.w}" height="${i.clr}" fill="${st==='warn'?'var(--warn)':'var(--acc)'}" fill-opacity=".14" stroke="${st==='warn'?'var(--warn)':'var(--acc)'}" stroke-dasharray="4 4"/>`;
+    g+=`<rect x="${-i.w/2}" y="${-i.d/2}" width="${i.w}" height="${i.d}" rx="3" fill="${fill}" fill-opacity=".45" stroke="${st==='ok'?`hsl(${hue} 55% 40%)`:col[st]}" stroke-width="${s?4:2.5}"/>`;
+    g+=`<line x1="${-i.w/2}" y1="${i.d/2}" x2="${i.w/2}" y2="${i.d/2}" stroke="var(--ink)" stroke-width="5"/></g>`;
+    g+=`<text x="${i.x}" y="${i.y-2}" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)" pointer-events="none">${i.name}</text>`;
+    g+=`<text x="${i.x}" y="${i.y+14}" text-anchor="middle" font-size="12" fill="var(--ink)" pointer-events="none">${i.w}×${i.d}</text></g>`;
+  });
+  const it=sel();
+  if(it){const b=box(it),cx=(b[0]+b[2])/2,cy=(b[1]+b[3])/2;
+    const dl=(x1,y1,x2,y2,v)=>v<=0?'':`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--ink)" stroke-dasharray="3 3"/><text x="${(x1+x2)/2}" y="${(y1+y2)/2-4}" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--floor)" stroke-width="4">${R(v)}</text>`;
+    g+=dl(0,cy,b[0],cy,b[0])+dl(b[2],cy,W,cy,W-b[2])+dl(cx,0,cx,b[1],b[1])+dl(cx,b[3],cx,L,L-b[3]);}
+  scene.innerHTML=g;
+  panel(D);
+}
+
+function panel(D){
+  const it=sel(),sts=S.items.map(i=>status(i,D)),bad=sts.filter(s=>s==='bad').length,warn=sts.filter(s=>s==='warn').length;
+  const used=S.items.reduce((a,i)=>a+i.w*i.d,0),pct=Math.round(100*used/(S.W*S.L));
+  let v=!S.items.length?['v-warn','Add furniture to start']:bad?['v-bad',`${bad} item${bad>1?'s':''} don't fit`]:warn?['v-warn',`Fits, but ${warn} blocked access`]:['v-ok','Everything fits'];
+  let h=`<h2>Layout check</h2><div class="verdict ${v[0]}">${v[1]}</div>
+  <div class="kv"><span>Room area</span><span>${(S.W*S.L/1e4).toFixed(1)} m²</span><span>Furniture footprint</span><span>${pct}%</span><span>Items</span><span>${S.items.length}</span></div>`;
+  if(it){const b=box(it),o=S.items.filter(x=>x!==it).map(x=>({n:x.name,g:gap(b,box(x))})).sort((a,c)=>a.g-c.g)[0];
+    h+=`<h2>${it.name} (${it.w}×${it.d} cm)</h2><div class="kv">
+    <span>Left wall</span><span>${R(b[0])} cm</span><span>Right wall</span><span>${R(S.W-b[2])} cm</span>
+    <span>Top wall</span><span>${R(b[1])} cm</span><span>Bottom wall</span><span>${R(S.L-b[3])} cm</span>
+    <span>Nearest item</span><span>${o?`${o.g} cm (${o.n})`:'–'}</span>
+    <span>Status</span><span>${{ok:'OK',warn:'Front access blocked',bad:'Collision / outside'}[status(it,D)]}</span></div>
+    <div class="btns"><button id="rot">Rotate 90°</button><button id="del">Delete</button></div>
+    <p class="note">The thick line marks the front. Keys: R rotates, Delete removes, arrows nudge 5 cm.</p>`;
+  } else h+=`<p class="note">Click a piece to see its distances to walls and neighbours.</p>`;
+  $('#panel').innerHTML=h;
+  const r=$('#rot'),d=$('#del');
+  if(r)r.onclick=rotate;if(d)d.onclick=del;
+}
+function rotate(){const i=sel();if(i){i.rot=(i.rot+90)%360;render()}}
+function del(){S.items=S.items.filter(i=>i.id!==S.sel);S.sel=null;render()}
+
+// drag
+let drag=null;
+const pt=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())};
+svg.addEventListener('pointerdown',e=>{
+  const g=e.target.closest('[data-id]');
+  if(!g){S.sel=null;render();return}
+  S.sel=+g.dataset.id;const i=sel(),p=pt(e);drag={dx:i.x-p.x,dy:i.y-p.y};
+  svg.setPointerCapture(e.pointerId);render()});
+svg.addEventListener('pointermove',e=>{
+  if(!drag)return;const i=sel(),p=pt(e);
+  i.x=Math.round((p.x+drag.dx)/5)*5;i.y=Math.round((p.y+drag.dy)/5)*5;
+  const[w,h]=eff(i),T=10;
+  if(Math.abs(i.x-w/2)<T)i.x=w/2;if(Math.abs(S.W-(i.x+w/2))<T)i.x=S.W-w/2;
+  if(Math.abs(i.y-h/2)<T)i.y=h/2;if(Math.abs(S.L-(i.y+h/2))<T)i.y=S.L-h/2;
+  render()});
+['pointerup','pointercancel'].forEach(t=>svg.addEventListener(t,()=>drag=null));
+document.addEventListener('keydown',e=>{
+  if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||!sel())return;
+  const k=e.key,i=sel(),n={ArrowLeft:[-5,0],ArrowRight:[5,0],ArrowUp:[0,-5],ArrowDown:[0,5]}[k];
+  if(k==='r'||k==='R')rotate();else if(k==='Delete'||k==='Backspace')del();
+  else if(n){e.preventDefault();i.x+=n[0];i.y+=n[1];render()}});
+
+// controls
+function room(){S.W=Math.max(150,+$('#rw').value||350);S.L=Math.max(150,+$('#rl').value||400);S.wall=$('#dw').value;
+  const dp=$('#dp'),max=(S.wall==='top'||S.wall==='bottom'?S.W:S.L)-DOOR;dp.max=max;S.off=Math.min(+dp.value,max);render()}
+['rw','rl','dw','dp'].forEach(id=>$('#'+id).addEventListener('input',room));
+$('#sc').onchange=e=>{S.clr=e.target.checked;render()};
+CAT.forEach(c=>{const b=document.createElement('button');b.textContent=`+ ${c[0]} ${c[1]}×${c[2]}`;b.onclick=()=>{add(...c.slice(0,4),c[4]);render()};$('#cat').append(b)});
+$('#cf').onsubmit=e=>{e.preventDefault();add($('#cn').value||'Item',Math.max(10,+$('#cw').value),Math.max(10,+$('#cd').value),Math.max(0,+$('#cc').value),Math.floor(Math.random()*360));render()};
+
+// starter layout
+[['Single bed',100,200,60,210,255,110],['Desk',120,60,80,200,60,40],['Wardrobe',120,55,80,0,250,372.5]].forEach(([n,w,d,c,h,x,y])=>{const i=add(n,w,d,c,h);i.x=x;i.y=y});
+S.items[1].rot=270;S.items[1].x=30;S.items[1].y=150;S.items[2].rot=180;S.sel=null;
+render();
+</script>
+</body>
+</html>
