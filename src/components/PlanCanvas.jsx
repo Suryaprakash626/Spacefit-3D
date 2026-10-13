@@ -1,3 +1,5 @@
+import { useWalkways } from '../useWalkways'
+import { regionRects } from '../pathfinding'
 import { useRef } from 'react'
 import { useStore } from '../store'
 import { DOOR, getBox, getDoor, getStatus } from '../geometry'
@@ -19,7 +21,8 @@ function DimLine({ x1, y1, x2, y2, v }) {
 }
 
 export default function PlanCanvas() {
-  const { room, items, selectedId, showClearance, select, moveItem } = useStore()
+    const { room, items, selectedId, showClearance, showWalkway, select, moveItem } = useStore()
+  const walk = useWalkways()
   const svgRef = useRef(null)
   const drag = useRef(null)
   const { W, L } = room
@@ -60,6 +63,9 @@ export default function PlanCanvas() {
         {Array.from({ length: Math.floor((L - 1) / 50) }, (_, k) => (k + 1) * 50).map((y) =>
           <line key={'y' + y} x1="0" y1={y} x2={W} y2={y} stroke="var(--grid)" />)}
         <rect width={W} height={L} fill="none" stroke="var(--ink)" strokeWidth="6" />
+                {showWalkway && regionRects(walk).map(([x, y, w, h], k) => (
+          <rect key={k} x={x} y={y} width={w} height={h} fill="var(--ok)" fillOpacity=".16" />
+        ))}
 
         {/* door opening + swing */}
         <line x1={door.hinge[0]} y1={door.hinge[1]} x2={door.closed[0]} y2={door.closed[1]}

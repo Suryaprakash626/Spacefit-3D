@@ -12,6 +12,7 @@ export const useStore = create((set) => ({
   selectedId: null,
   showClearance: true,
     view: '2d',
+      showWalkway: true,
 
   setRoom: (patch) =>
     set((s) => {
@@ -52,4 +53,5 @@ export const useStore = create((set) => ({
   select: (id) => set({ selectedId: id }),
   toggleClearance: () => set((s) => ({ showClearance: !s.showClearance })),
     setView: (view) => set({ view }),
+      toggleWalkway: () => set((s) => ({ showWalkway: !s.showWalkway })),
 }))

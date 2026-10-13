@@ -4,7 +4,7 @@ import { CATALOG } from '../catalog'
 import { DOOR } from '../geometry'
 
 export default function RoomControls() {
-  const { room, setRoom, showClearance, toggleClearance, addItem } = useStore()
+    const { room, setRoom, showClearance, toggleClearance, showWalkway, toggleWalkway, addItem } = useStore()
   const [c, setC] = useState({ name: 'My item', w: 100, d: 60, clr: 60 })
   const max = (room.wall === 'top' || room.wall === 'bottom' ? room.W : room.L) - DOOR
 
@@ -29,6 +29,10 @@ export default function RoomControls() {
                  onChange={(e) => setRoom({ off: +e.target.value })} />
         </label>
         <label className="inline">
+                    <label className="inline">
+          <input type="checkbox" checked={showWalkway} onChange={toggleWalkway} />
+          Show walkway
+        </label>
           <input type="checkbox" checked={showClearance} onChange={toggleClearance} />
           Show clearance
         </label>
