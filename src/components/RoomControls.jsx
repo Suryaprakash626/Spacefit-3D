@@ -42,7 +42,7 @@ export default function RoomControls() {
 
       <form className="row" onSubmit={(e) => {
         e.preventDefault()
-        addItem({ name: c.name || 'Item', w: +c.w, d: +c.d, clr: +c.clr, h: Math.floor(Math.random() * 360) })
+        addItem({ name: c.name || 'Item', w: +c.w, d: +c.d, clr: +c.clr, ht: 80, h: Math.floor(Math.random() * 360) })
       }}>
         <label>Custom item<input type="text" value={c.name} onChange={field('name')} /></label>
         <label>Width<input type="number" min="10" value={c.w} onChange={field('w')} /></label>

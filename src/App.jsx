@@ -2,10 +2,14 @@ import { useEffect } from 'react'
 import { useStore } from './store'
 import RoomControls from './components/RoomControls'
 import PlanCanvas from './components/PlanCanvas'
+import Room3D from './components/Room3D'
 import InfoPanel from './components/InfoPanel'
 import './index.css'
 
 export default function App() {
+  const view = useStore((s) => s.view)
+  const setView = useStore((s) => s.setView)
+
   useEffect(() => {
     const onKey = (e) => {
       if (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return
@@ -28,7 +32,11 @@ export default function App() {
       </header>
       <main>
         <RoomControls />
-        <PlanCanvas />
+        <div className="tabs">
+          <button className={view === '2d' ? 'on' : ''} onClick={() => setView('2d')}>2D plan</button>
+          <button className={view === '3d' ? 'on' : ''} onClick={() => setView('3d')}>3D view</button>
+        </div>
+        {view === '2d' ? <PlanCanvas /> : <Room3D />}
       </main>
       <InfoPanel />
     </div>

@@ -3,14 +3,15 @@ import { DOOR, snapToWalls } from './geometry'
 
 export const useStore = create((set) => ({
   room: { W: 350, L: 400, wall: 'bottom', off: 40 },
-  items: [
-    { id: 1, name: 'Single bed', w: 100, d: 200, clr: 60, h: 210, x: 255, y: 110, rot: 0 },
-    { id: 2, name: 'Desk', w: 120, d: 60, clr: 80, h: 200, x: 30, y: 150, rot: 270 },
-    { id: 3, name: 'Wardrobe', w: 120, d: 55, clr: 80, h: 0, x: 250, y: 372.5, rot: 180 },
+    items: [
+    { id: 1, name: 'Single bed', w: 100, d: 200, clr: 60, ht: 50, h: 210, x: 255, y: 110, rot: 0 },
+    { id: 2, name: 'Desk', w: 120, d: 60, clr: 80, ht: 75, h: 200, x: 30, y: 150, rot: 270 },
+    { id: 3, name: 'Wardrobe', w: 120, d: 55, clr: 80, ht: 200, h: 0, x: 250, y: 372.5, rot: 180 },
   ],
   nextId: 4,
   selectedId: null,
   showClearance: true,
+    view: '2d',
 
   setRoom: (patch) =>
     set((s) => {
@@ -50,4 +51,5 @@ export const useStore = create((set) => ({
 
   select: (id) => set({ selectedId: id }),
   toggleClearance: () => set((s) => ({ showClearance: !s.showClearance })),
+    setView: (view) => set({ view }),
 }))
