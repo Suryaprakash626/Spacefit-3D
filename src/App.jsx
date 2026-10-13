@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { useStore } from './store'
+import { readShareFromHash } from './exporters'
 import RoomControls from './components/RoomControls'
+import ExportBar from './components/ExportBar'
 import PlanCanvas from './components/PlanCanvas'
 import Room3D from './components/Room3D'
 import LayoutsPanel from './components/LayoutsPanel'
@@ -13,6 +15,16 @@ const TABS = [['2d', '2D plan'], ['3d', '3D view'], ['layouts', 'Layouts'], ['co
 export default function App() {
   const view = useStore((s) => s.view)
   const setView = useStore((s) => s.setView)
+
+  // open a shared link: #layout=... in the address bar
+  useEffect(() => {
+    const shared = readShareFromHash()
+    if (shared) {
+      const s = useStore.getState()
+      s.loadLayout(shared.room, shared.items)
+      s.setView('2d')
+    }
+  }, [])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -36,6 +48,7 @@ export default function App() {
       </header>
       <main>
         <RoomControls />
+        <ExportBar />
         <div className="tabs">
           {TABS.map(([key, label]) => (
             <button key={key} className={view === key ? 'on' : ''} onClick={() => setView(key)}>{label}</button>
