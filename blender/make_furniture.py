@@ -1,4 +1,4 @@
-r"""Generate six beginner-friendly SpaceFit 3D furniture assets with Blender.
+r"""Generate twelve beginner-friendly SpaceFit 3D furniture assets with Blender.
 
 Run from Windows PowerShell (from the SpaceFit project root):
   blender --background --python .\blender\make_furniture.py
@@ -123,6 +123,10 @@ def add_asset_collection(name):
     return collection, root
 
 
+# ---------------------------------------------------------------------------
+# Bedroom and study pieces
+# ---------------------------------------------------------------------------
+
 def build_bed(collection, root):
     # A single bed: approx. 2.0 m long x 1.0 m wide.
     add_box("Bed_Frame", (1.96, 1.02, 0.13), (0, 0, 0.25), WOOD, collection, root, 0.025)
@@ -209,6 +213,80 @@ def build_bookshelf(collection, root):
             x += width + 0.025
 
 
+# ---------------------------------------------------------------------------
+# Living room, dining and storage pieces. Fronts face -Y.
+# ---------------------------------------------------------------------------
+
+def build_sofa(collection, root):
+    # Three-seat sofa approx. 1.9 m wide x 0.9 m deep x 0.85 m tall.
+    for x in (-0.85, 0.85):
+        for y in (-0.36, 0.36):
+            add_box("Sofa_Foot", (0.06, 0.06, 0.08), (x, y, 0.04), WOOD_DARK, collection, root, 0.008)
+    add_box("Sofa_Base", (1.90, 0.88, 0.20), (0, 0, 0.18), FABRIC_BLUE, collection, root, 0.03)
+    for x in (-0.375, 0.375):
+        add_box("Sofa_Seat_Cushion", (0.74, 0.64, 0.14), (x, -0.08, 0.35), FABRIC_BLUE, collection, root, 0.045)
+        add_box("Sofa_Back_Cushion", (0.72, 0.14, 0.40), (x, 0.165, 0.56), FABRIC_BLUE, collection, root, 0.05)
+    add_box("Sofa_Backrest", (1.90, 0.20, 0.57), (0, 0.34, 0.565), FABRIC_BLUE, collection, root, 0.04)
+    for x in (-0.85, 0.85):
+        add_box("Sofa_Arm", (0.20, 0.88, 0.34), (x, 0, 0.45), FABRIC_BLUE, collection, root, 0.04)
+
+
+def build_dining_table(collection, root):
+    # Dining table 1.4 m x 0.8 m, top at 0.75 m.
+    add_box("Table_Top", (1.40, 0.80, 0.05), (0, 0, 0.725), WOOD_LIGHT, collection, root, 0.015)
+    for x in (-0.63, 0.63):
+        for y in (-0.33, 0.33):
+            add_box("Table_Leg", (0.07, 0.07, 0.70), (x, y, 0.35), WOOD, collection, root, 0.01)
+    for y in (-0.33, 0.33):
+        add_box("Table_Rail", (1.20, 0.03, 0.08), (0, y, 0.66), WOOD, collection, root, 0.006)
+
+
+def build_coffee_table(collection, root):
+    # Low living-room table 1.0 m x 0.55 m x 0.42 m with a lower shelf.
+    add_box("Coffee_Top", (1.00, 0.55, 0.04), (0, 0, 0.40), WOOD_LIGHT, collection, root, 0.012)
+    add_box("Coffee_Shelf", (0.90, 0.45, 0.025), (0, 0, 0.12), WOOD, collection, root, 0.008)
+    for x in (-0.44, 0.44):
+        for y in (-0.21, 0.21):
+            add_box("Coffee_Leg", (0.05, 0.05, 0.38), (x, y, 0.19), METAL, collection, root, 0.006)
+
+
+def build_tv_unit(collection, root):
+    # Low media console 1.5 m wide x 0.4 m deep x 0.45 m tall. Doors face -Y.
+    for x in (-0.68, 0.68):
+        for y in (-0.15, 0.15):
+            add_box("TV_Foot", (0.04, 0.04, 0.08), (x, y, 0.04), METAL, collection, root, 0.005)
+    add_box("TV_Body", (1.50, 0.40, 0.34), (0, 0, 0.25), WOOD, collection, root, 0.015)
+    add_box("TV_Top", (1.54, 0.42, 0.03), (0, 0, 0.435), WOOD_LIGHT, collection, root, 0.01)
+    for x in (-0.49, 0, 0.49):
+        add_box("TV_Door", (0.48, 0.02, 0.30), (x, -0.21, 0.25), WOOD_LIGHT, collection, root, 0.008)
+        add_box("TV_Handle", (0.10, 0.02, 0.016), (x, -0.23, 0.33), METAL, collection, root, 0.003)
+
+
+def build_armchair(collection, root):
+    # Armchair approx. 0.8 m x 0.8 m x 0.85 m, facing -Y.
+    for x in (-0.33, 0.33):
+        for y in (-0.33, 0.33):
+            add_box("Armchair_Foot", (0.05, 0.05, 0.08), (x, y, 0.04), WOOD_DARK, collection, root, 0.008)
+    add_box("Armchair_Base", (0.80, 0.78, 0.20), (0, 0, 0.18), FABRIC_GREEN, collection, root, 0.03)
+    add_box("Armchair_Seat", (0.56, 0.56, 0.12), (0, -0.04, 0.34), FABRIC_GREEN, collection, root, 0.04)
+    add_box("Armchair_Backrest", (0.80, 0.18, 0.57), (0, 0.30, 0.565), FABRIC_GREEN, collection, root, 0.04)
+    add_box("Armchair_Back_Cushion", (0.56, 0.12, 0.36), (0, 0.15, 0.55), FABRIC, collection, root, 0.04)
+    for x in (-0.34, 0.34):
+        add_box("Armchair_Arm", (0.12, 0.78, 0.30), (x, 0, 0.43), FABRIC_GREEN, collection, root, 0.03)
+
+
+def build_dresser(collection, root):
+    # Chest of drawers 1.0 m wide x 0.45 m deep x 0.87 m tall. Drawers face -Y.
+    for x in (-0.44, 0.44):
+        for y in (-0.17, 0.17):
+            add_box("Dresser_Foot", (0.05, 0.05, 0.07), (x, y, 0.035), WOOD_DARK, collection, root, 0.006)
+    add_box("Dresser_Body", (1.00, 0.45, 0.76), (0, 0, 0.45), WOOD, collection, root, 0.015)
+    add_box("Dresser_Top", (1.04, 0.48, 0.03), (0, 0, 0.855), WOOD_LIGHT, collection, root, 0.01)
+    for z in (0.20, 0.38, 0.56, 0.74):
+        add_box("Dresser_Drawer", (0.92, 0.02, 0.16), (0, -0.235, z), WOOD_LIGHT, collection, root, 0.008)
+        add_box("Dresser_Handle", (0.12, 0.02, 0.02), (0, -0.255, z), METAL, collection, root, 0.004)
+
+
 ASSETS = [
     ("bed", build_bed),
     ("desk", build_desk),
@@ -216,6 +294,12 @@ ASSETS = [
     ("wardrobe", build_wardrobe),
     ("bedside_table", build_bedside_table),
     ("bookshelf", build_bookshelf),
+    ("sofa", build_sofa),
+    ("dining_table", build_dining_table),
+    ("coffee_table", build_coffee_table),
+    ("tv_unit", build_tv_unit),
+    ("armchair", build_armchair),
+    ("dresser", build_dresser),
 ]
 
 
@@ -236,7 +320,6 @@ def export_selected_glb(filepath):
 
 def main():
     clear_previous_generated_scene()
-    scene = bpy.context.scene
     built_assets = []
 
     for index, (asset_name, builder) in enumerate(ASSETS):
@@ -260,12 +343,12 @@ def main():
 
         # Spread the models out after export so the saved .blend file is easy
         # to inspect. This preview offset does not affect individual GLBs.
-        column = index % 3
-        row = index // 3
-        root.location = ((column - 1) * 3.5, row * 3.2, 0.0)
+        column = index % 4
+        row = index // 4
+        root.location = ((column - 1.5) * 3.2, row * 3.2, 0.0)
         built_assets.append((asset_name, root))
 
-    # Make the saved Blender project open with all six furniture pieces visible.
+    # Make the saved Blender project open with all furniture pieces visible.
     for obj in bpy.context.selected_objects:
         obj.select_set(False)
     for _, root in built_assets:

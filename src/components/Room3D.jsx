@@ -19,6 +19,12 @@ const MODEL = {
   Wardrobe: { file: 'wardrobe', turn: 180 },
   'Bedside table': { file: 'bedside_table', turn: 180 },
   Bookshelf: { file: 'bookshelf', turn: 180 },
+  Sofa: { file: 'sofa', turn: 0 },
+  Table: { file: 'dining_table', turn: 0 },
+  'Coffee table': { file: 'coffee_table', turn: 0 },
+  'TV unit': { file: 'tv_unit', turn: 0 },
+  Armchair: { file: 'armchair', turn: 0 },
+  Dresser: { file: 'dresser', turn: 0 },
 }
 
 // if a model file is missing or fails to load, show the fallback box instead
